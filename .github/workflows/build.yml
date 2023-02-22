@@ -37,3 +37,20 @@ jobs:
         docker build -t ccr.ccs.tencentyun.com/smiles/clashsubscribe:${{ github.sha }} -t ccr.ccs.tencentyun.com/smiles/clashsubscribe .
         docker push ccr.ccs.tencentyun.com/smiles/clashsubscribe:${{ github.sha }}
         docker push ccr.ccs.tencentyun.com/smiles/clashsubscribe
+    # 让K8s应用deployment
+    - run: |
+        sed -i 's/{TAG}/${{ github.sha }}/g' deployment.yaml
+    - name: deploy to cluster
+      uses: steebchen/kubectl@master
+      env:
+        KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA }}
+        KUBECTL_VERSION: "v1.23.6+k3s1"
+      with:
+        args: apply -f deployment.yaml
+    - name: verify deployment
+      uses: steebchen/kubectl@master
+      env:
+        KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA }}
+        KUBECTL_VERSION: "v1.23.6+k3s1"
+      with:
+        args: '"rollout status -n clashsubscribe deployment/clashsubscribe"'
