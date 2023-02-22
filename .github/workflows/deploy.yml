@@ -34,6 +34,6 @@ jobs:
         username: ${{ secrets.REGISTRY_USERNAME }}
         password: ${{ secrets.REGISTRY_PASSWORD }}
     - run: |
-      docker build -t ccr.ccs.tencentyun.com/smiles/clashsubscribe:${{ github.sha }} -t ccr.ccs.tencentyun.com/smiles/clashsubscribe .
-      docker push ccr.ccs.tencentyun.com/smiles/clashsubscribe:${{ github.sha }}
-      docker push ccr.ccs.tencentyun.com/smiles/clashsubscribe
+        docker build -t ccr.ccs.tencentyun.com/smiles/clashsubscribe:${{ github.sha }} -t ccr.ccs.tencentyun.com/smiles/clashsubscribe .
+        docker push ccr.ccs.tencentyun.com/smiles/clashsubscribe:${{ github.sha }}
+        docker push ccr.ccs.tencentyun.com/smiles/clashsubscribe
