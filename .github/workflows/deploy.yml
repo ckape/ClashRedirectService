@@ -28,12 +28,12 @@ jobs:
         mvn -B package --file pom.xml
 
     - name: Docker push
-        uses: azure/docker-login@v1
-        with:
-          login-server: ccr.ccs.tencentyun.com
-          username: ${{ secrets.REGISTRY_USERNAME }}
-          password: ${{ secrets.REGISTRY_PASSWORD }}
-        run: |
-          docker build -t ccr.ccs.tencentyun.com/smiles/clashsubscribe:${{ github.sha }} -t ccr.ccs.tencentyun.com/smiles/clashsubscribe .
-          docker push ccr.ccs.tencentyun.com/smiles/clashsubscribe:${{ github.sha }}
-          docker push ccr.ccs.tencentyun.com/smiles/clashsubscribe
+      uses: azure/docker-login@v1
+      with:
+        login-server: ccr.ccs.tencentyun.com
+        username: ${{ secrets.REGISTRY_USERNAME }}
+        password: ${{ secrets.REGISTRY_PASSWORD }}
+      run: |
+        docker build -t ccr.ccs.tencentyun.com/smiles/clashsubscribe:${{ github.sha }} -t ccr.ccs.tencentyun.com/smiles/clashsubscribe .
+        docker push ccr.ccs.tencentyun.com/smiles/clashsubscribe:${{ github.sha }}
+        docker push ccr.ccs.tencentyun.com/smiles/clashsubscribe
