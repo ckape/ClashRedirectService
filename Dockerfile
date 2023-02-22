@@ -1,13 +1,12 @@
-FROM registry.cn-hangzhou.aliyuncs.com/acs/maven:3-jdk-8 AS builder
-COPY ./pom.xml pom.xml
-RUN ["/usr/local/bin/mvn-entrypoint.sh","mvn","verify","clean","--fail-never"]
+FROM maven:3.8.4-jdk-11 AS builder
+ADD ./pom.xml pom.xml
+ADD ./settings.xml /root/.m2/settings.xml
 ADD ./src src/
-RUN /usr/local/bin/mvn-entrypoint.sh mvn clean package -DskipTests
+RUN mvn clean package -Dmaven.test.skip=true
 
-FROM openjdk:8-jdk-alpine
-ENV TZ=Asia/Shanghai
+FROM openjdk:11-jdk-slim
+WORKDIR /app
+COPY  --from=builder target/aiui-midea-proxy-0.0.1-SNAPSHOT.jar /app/app.jar
 COPY --from=hengyunabc/arthas:latest /opt/arthas /opt/arthas
-RUN apk add --no-cache tini
-ENTRYPOINT ["/sbin/tini", "--"]
-COPY --from=builder target/*.jar app.jar
+RUN  echo "Asia/Shanghai" > /etc/timezone;dpkg-reconfigure -f noninteractive tzdata
 CMD ["java", "-Xms512m", "-Xmx1024m", "-Dlog4j2.formatMsgNoLookups=true", "-jar", "app.jar"]
