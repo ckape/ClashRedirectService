@@ -30,7 +30,7 @@ jobs:
     - name: Docker push
       uses: azure/docker-login@v1
       with:
-        login-server: ${{ env.DOCKER_REGISTRY_SERVER }}
+        login-server: ccr.ccs.tencentyun.com
         username: ${{ secrets.REGISTRY_USERNAME }}
         password: ${{ secrets.REGISTRY_PASSWORD }}
     - run: |
