@@ -19,6 +19,14 @@ jobs:
       packages: write
 
     steps:
+    - uses: actions/checkout@v3
+    - name: Set up JDK 11
+      uses: actions/setup-java@v3
+      with:
+        java-version: '11'
+        distribution: 'temurin'
+        server-id: github
+        settings-path: ${{ github.workspace }}
     - run: |
         sed -i 's/{TAG}/e518cf03a4e2691a18477964e51e62ac823298e2/g' deployment.yaml
     - name: Deploy to K3S
