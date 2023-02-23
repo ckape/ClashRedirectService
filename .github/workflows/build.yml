@@ -5,6 +5,10 @@ on:
     branches:
       - master
 
+env:
+  DOCKER_REGISTRY_SERVER: ccr.ccs.tencentyun.com
+  DOCKER_REGISTRY_STORAGE: smiles
+
 jobs:
   build:
 
