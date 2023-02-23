@@ -1,4 +1,4 @@
-name: Build and Deploy
+name: Deploy
 
 on:
   push:
@@ -13,13 +13,24 @@ env:
 jobs:
   build:
 
-    runs-on: self-hosted
-    permissions:
-      contents: read
-      packages: write
-
+    runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - run: |
-        sed -i 's/{TAG}/e518cf03a4e2691a18477964e51e62ac823298e2/g' deployment.yaml
-        kubectl apply -f deployment.yaml
+      - name: Set the Kubernetes context
+        uses: azure/k8s-set-context@v2
+        with:
+          k8s-url: 101.33.212.124:6443
+          k8s-secret: ${{ secrets.KUBE_CONFIG_DATA }}
+
+      - name: Checkout source code
+        uses: actions/checkout@v3
+      - run: |
+          sed -i 's/{TAG}/e518cf03a4e2691a18477964e51e62ac823298e2/g' deployment.yaml
+
+      - name: Deploy to the Kubernetes cluster
+        uses: azure/k8s-deploy@v1
+        with:
+          namespace: default
+          manifests: |
+            deployment.yaml
+          images: |
+            $DOCKER_REGISTRY_SERVER/$DOCKER_REGISTRY_STORAGE/$PROJECT_NAME:e518cf03a4e2691a18477964e51e62ac823298e2
