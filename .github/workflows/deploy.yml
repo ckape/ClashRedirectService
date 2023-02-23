@@ -1,0 +1,28 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches:
+      - master
+
+env:
+  DOCKER_REGISTRY_SERVER: ccr.ccs.tencentyun.com
+  DOCKER_REGISTRY_STORAGE: smiles
+  PROJECT_NAME: clashsubscribe
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+    - run: |
+        sed -i 's/{TAG}/e518cf03a4e2691a18477964e51e62ac823298e2/g' deployment.yaml
+    - name: Deploy to K3S
+      uses: danielr1996/kubectl-action@1.0.0
+      with:
+        kubeconfig: ${{ secrets.KUBE_CONFIG_DATA }}
+        args: apply -f deployment.yaml

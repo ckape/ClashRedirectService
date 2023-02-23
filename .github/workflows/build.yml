@@ -3,7 +3,7 @@ name: Build and Deploy
 on:
   push:
     branches:
-      - master
+      - branch
 
 env:
   DOCKER_REGISTRY_SERVER: ccr.ccs.tencentyun.com
