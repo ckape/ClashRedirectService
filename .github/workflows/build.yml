@@ -33,8 +33,8 @@ jobs:
         password: ${{ secrets.REGISTRY_PASSWORD }}
     - name: Tag and Push Docker image
       run: |
-        docker build -t ${{ env.DOCKER_REGISTRY_SERVER }}/${{ env.DOCKER_REGISTRY_STORAGE }}/${{ github.event.repository.name }}:${{ github.sha } .
-        docker push ${{ env.DOCKER_REGISTRY_SERVER }}/${{ env.DOCKER_REGISTRY_STORAGE }}/${{ github.event.repository.name }}:${{ github.sha }
+        docker build -t ${{ env.DOCKER_REGISTRY_SERVER }}/${{ env.DOCKER_REGISTRY_STORAGE }}/${{ github.event.repository.name }}:${{ github.sha }} .
+        docker push ${{ env.DOCKER_REGISTRY_SERVER }}/${{ env.DOCKER_REGISTRY_STORAGE }}/${{ github.event.repository.name }}:${{ github.sha }}
     - run: |
         sed -i 's/{TAG}/${{ github.sha }}/g' deployment.yaml
     - name: Deploy to Kubernetes
