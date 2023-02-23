@@ -41,11 +41,10 @@ jobs:
     - run: |
         docker build -t $DOCKER_REGISTRY_SERVER/$DOCKER_REGISTRY_STORAGE/$PROJECT_NAME:${{ github.sha }} .
         docker push $DOCKER_REGISTRY_SERVER/$DOCKER_REGISTRY_STORAGE/$PROJECT_NAME:${{ github.sha }}
-    # 让K8s应用deployment
     - run: |
         sed -i 's/{TAG}/${{ github.sha }}/g' deployment.yaml
     - name: Deploy to K3S
-      uses: danielr1996/kubectl-action@master
+      uses: danielr1996/kubectl-action@1.0.0
       with:
         kubeconfig: ${{ secrets.KUBE_CONFIG_DATA }}
         args: apply -f deployment.yaml
