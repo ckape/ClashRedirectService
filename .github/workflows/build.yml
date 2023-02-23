@@ -21,34 +21,28 @@ jobs:
         distribution: 'temurin'
         server-id: github
         settings-path: ${{ github.workspace }}
-  docker-push:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - name: Docker push
-        uses: azure/docker-login@v1
-        with:
-          login-server: ccr.ccs.tencentyun.com
-          username: ${{ secrets.REGISTRY_USERNAME }}
-          password: ${{ secrets.REGISTRY_PASSWORD }}
-      - run: |
-          docker build -t ccr.ccs.tencentyun.com/smiles/clashsubscribe:${{ github.sha }} -t ccr.ccs.tencentyun.com/smiles/clashsubscribe .
-          docker push ccr.ccs.tencentyun.com/smiles/clashsubscribe:${{ github.sha }}
-          docker push ccr.ccs.tencentyun.com/smiles/clashsubscribe
-  k3s-deploy:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - run: |
-          sed -i 's/{TAG}/${{ github.sha }}/g' deployment.yaml
-      - name: deploy to cluster
-        uses: steebchen/kubectl@master
-        env:
-          KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA }}
-          KUBECTL_VERSION: "v1.23.6+k3s1"
-        with:
-          args: apply -f deployment.yaml
+
+    - name: Build with Maven
+      run: |
+        mvn -B package --file pom.xml
+
+    - name: Docker push
+      uses: azure/docker-login@v1
+      with:
+        login-server: ${{ secrets.DOCKER_REGISTRY_SERVER }}
+        username: ${{ secrets.REGISTRY_USERNAME }}
+        password: ${{ secrets.REGISTRY_PASSWORD }}
+    - run: |
+        docker build -t ${{ secrets.DOCKER_REGISTRY }}/${{ github.event.repository.name }}:${{ github.sha }} -t ${{ secrets.DOCKER_REGISTRY }}/${{ github.event.repository.name }} .
+        docker push ${{ secrets.DOCKER_REGISTRY }}/${{ github.event.repository.name }}:${{ github.sha }}
+        docker push ${{ secrets.DOCKER_REGISTRY }}/${{ github.event.repository.name }}
+    # 让K8s应用deployment
+    - run: |
+        sed -i 's/{TAG}/${{ github.sha }}/g' deployment.yaml
+    - name: deploy to cluster
+      uses: steebchen/kubectl@master
+      env:
+        KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA }}
+        KUBECTL_VERSION: "v1.23.6+k3s1"
+      with:
+        args: apply -f deployment.yaml
