@@ -30,19 +30,17 @@ jobs:
     - name: Docker push
       uses: azure/docker-login@v1
       with:
-        login-server: ccr.ccs.tencentyun.com
+        login-server: ${{ env.DOCKER_REGISTRY_SERVER }}
         username: ${{ secrets.REGISTRY_USERNAME }}
         password: ${{ secrets.REGISTRY_PASSWORD }}
     - run: |
-        docker build -t ccr.ccs.tencentyun.com/smiles/clashsubscribe:${{ github.sha }} -t ccr.ccs.tencentyun.com/smiles/clashsubscribe .
-        docker push ccr.ccs.tencentyun.com/smiles/clashsubscribe:${{ github.sha }}
-        docker push ccr.ccs.tencentyun.com/smiles/clashsubscribe
+        docker build -t ${{ env.DOCKER_REGISTRY_SERVER }}/${{ env.DOCKER_REGISTRY_STORAGE }}/${{ github.event.repository.name }}:${{ github.sha }} .
+        docker push ${{ env.DOCKER_REGISTRY_SERVER }}/${{ env.DOCKER_REGISTRY_STORAGE }}/${{ github.event.repository.name }}:${{ github.sha }}
     # 让K8s应用deployment
     - run: |
         sed -i 's/{TAG}/${{ github.sha }}/g' deployment.yaml
     - name: Deploy to K3S
       uses: danielr1996/kubectl-action@master
       with:
+        kubeconfig: ${{ secrets.KUBE_CONFIG_DATA }}
         args: apply -f deployment.yaml
-      env:
-        KUBECONFIG: ${{ secrets.KUBE_CONFIG_DATA }}
