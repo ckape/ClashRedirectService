@@ -18,9 +18,9 @@ jobs:
       - name: Set the Kubernetes context
         uses: azure/k8s-set-context@v2
         with:
-          k8s-url: 101.33.212.124:6443
-          k8s-secret: ${{ secrets.KUBE_CONFIG_DATA }}
-
+          method: kubeconfig
+          kubeconfig: ${{ secrets.KUBE_CONFIG_DATA }}
+          
       - name: Checkout source code
         uses: actions/checkout@v3
       - run: |
