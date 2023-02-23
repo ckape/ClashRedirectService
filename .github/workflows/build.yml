@@ -8,6 +8,7 @@ on:
 env:
   DOCKER_REGISTRY_SERVER: ccr.ccs.tencentyun.com
   DOCKER_REGISTRY_STORAGE: smiles
+  PROJECT_NAME: clashsubscribe
 
 jobs:
   build:
@@ -38,8 +39,8 @@ jobs:
         username: ${{ secrets.REGISTRY_USERNAME }}
         password: ${{ secrets.REGISTRY_PASSWORD }}
     - run: |
-        docker build -t $DOCKER_REGISTRY_SERVER/$DOCKER_REGISTRY_STORAGE/${{ github.event.repository.name }}:${{ github.sha }} .
-        docker push $DOCKER_REGISTRY_SERVER/$DOCKER_REGISTRY_STORAGE/${{ github.event.repository.name }}:${{ github.sha }}
+        docker build -t $DOCKER_REGISTRY_SERVER/$DOCKER_REGISTRY_STORAGE/$PROJECT_NAME:${{ github.sha }} .
+        docker push $DOCKER_REGISTRY_SERVER/$DOCKER_REGISTRY_STORAGE/$PROJECT_NAME:${{ github.sha }}
     # 让K8s应用deployment
     - run: |
         sed -i 's/{TAG}/${{ github.sha }}/g' deployment.yaml
