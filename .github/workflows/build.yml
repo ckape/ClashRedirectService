@@ -40,10 +40,9 @@ jobs:
     # 让K8s应用deployment
     - run: |
         sed -i 's/{TAG}/${{ github.sha }}/g' deployment.yaml
-    - name: deploy to cluster
-      uses: steebchen/kubectl@master
-      env:
-        KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA }}
-        KUBECTL_VERSION: "v1.23.6+k3s1"
+    - name: Deploy to K3S
+      uses: danielr1996/kubectl-action@master
       with:
         args: apply -f deployment.yaml
+      env:
+        KUBECONFIG: ${{ secrets.KUBE_CONFIG_DATA }}
