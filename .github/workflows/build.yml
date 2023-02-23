@@ -38,7 +38,7 @@ jobs:
     - run: |
         sed -i 's/{TAG}/${{ github.sha }}/g' deployment.yaml
     - name: Deploy to Kubernetes
-      uses: appleboy/kubectl-action@master
+      uses: danielr1996/kubectl-action@master
       with:
         args: apply -f deployment.yaml
       env:
