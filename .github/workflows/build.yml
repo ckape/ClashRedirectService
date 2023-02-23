@@ -11,6 +11,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+
     steps:
     - uses: actions/checkout@v3
     - name: Set up JDK 11
@@ -42,11 +43,12 @@ jobs:
       contents: read
       packages: write
     steps:
+      - run: |
+          sed -i 's/{TAG}/${{ github.sha }}/g' deployment.yaml
       - name: deploy to cluster
         uses: steebchen/kubectl@master
         env:
           KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA }}
           KUBECTL_VERSION: "v1.23.6+k3s1"
-        run: |
-          sed -i 's/{TAG}/${{ github.sha }}/g' deployment.yaml
-          kubectl apply -f deployment.yaml
+        with:
+          args: apply -f deployment.yaml
