@@ -7,6 +7,7 @@ on:
 
 jobs:
   build:
+
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -24,19 +25,22 @@ jobs:
 
     - name: Build with Maven
       run: |
-        mvn clean package -Dmaven.test.skip=true
+        mvn -B package --file pom.xml
 
-    - name: Docker Tag and Push
+    - name: Docker push
       uses: azure/docker-login@v1
       with:
-        login-server: ${{ env.DOCKER_REGISTRY_SERVER }}
+        login-server: ccr.ccs.tencentyun.com
         username: ${{ secrets.REGISTRY_USERNAME }}
         password: ${{ secrets.REGISTRY_PASSWORD }}
-      - run: |
-        docker build -t ${{ env.DOCKER_REGISTRY_SERVER }}/${{ env.DOCKER_REGISTRY_STORAGE }}/${{ github.event.repository.name }}:${{ github.sha }} .
-        docker push ${{ env.DOCKER_REGISTRY_SERVER }}/${{ env.DOCKER_REGISTRY_STORAGE }}/${{ github.event.repository.name }}:${{ github.sha }}
+
+    - run: |
+      docker build -t ${{ env.DOCKER_REGISTRY_SERVER }}/${{ env.DOCKER_REGISTRY_STORAGE }}/${{ github.event.repository.name }}:${{ github.sha }} .
+      docker push ${{ env.DOCKER_REGISTRY_SERVER }}/${{ env.DOCKER_REGISTRY_STORAGE }}/${{ github.event.repository.name }}:${{ github.sha }}
+
     - run: |
         sed -i 's/{TAG}/${{ github.sha }}/g' deployment.yaml
+
     - name: Deploy to K3S
       uses: danielr1996/kubectl-action@master
       with:
