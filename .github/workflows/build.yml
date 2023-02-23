@@ -7,43 +7,48 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up JDK 11
-      uses: actions/setup-java@v3
-      with:
-        java-version: '11'
-        distribution: 'temurin'
-        server-id: github
-        settings-path: ${{ github.workspace }}
-
-    - name: Build with Maven
-      run: |
-        mvn -B package --file pom.xml
-
-    - name: Docker push
-      uses: azure/docker-login@v1
-      with:
-        login-server: ccr.ccs.tencentyun.com
-        username: ${{ secrets.REGISTRY_USERNAME }}
-        password: ${{ secrets.REGISTRY_PASSWORD }}
-
-    - run: |
-      docker build -t ${{ env.DOCKER_REGISTRY_SERVER }}/${{ env.DOCKER_REGISTRY_STORAGE }}/${{ github.event.repository.name }}:${{ github.sha }} .
-      docker push ${{ env.DOCKER_REGISTRY_SERVER }}/${{ env.DOCKER_REGISTRY_STORAGE }}/${{ github.event.repository.name }}:${{ github.sha }}
-
-    - run: |
-        sed -i 's/{TAG}/${{ github.sha }}/g' deployment.yaml
-
-    - name: Deploy to K3S
-      uses: danielr1996/kubectl-action@master
-      with:
-        args: apply -f deployment.yaml
-      env:
-        KUBECONFIG: ${{ secrets.KUBE_CONFIG_DATA }}
+      - uses: actions/checkout@v3
+      - name: Set up JDK 11
+        uses: actions/setup-java@v3
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+          server-id: github
+          settings-path: ${{ github.workspace }}
+  docker-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Docker push
+        uses: azure/docker-login@v1
+        with:
+          login-server: ccr.ccs.tencentyun.com
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+      - run: |
+          docker build -t ccr.ccs.tencentyun.com/smiles/clashsubscribe:${{ github.sha }} -t ccr.ccs.tencentyun.com/smiles/clashsubscribe .
+          docker push ccr.ccs.tencentyun.com/smiles/clashsubscribe:${{ github.sha }}
+          docker push ccr.ccs.tencentyun.com/smiles/clashsubscribe
+  k3s-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - run: |
+          sed -i 's/{TAG}/${{ github.sha }}/g' deployment.yaml
+      - name: deploy to cluster
+        uses: steebchen/kubectl@master
+        env:
+          KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA }}
+          KUBECTL_VERSION: "v1.23.6+k3s1"
+        with:
+          args: apply -f deployment.yaml
