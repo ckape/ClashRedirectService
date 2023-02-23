@@ -5,6 +5,9 @@ on:
     branches:
       - master
 
+env:
+  PROJECT_DOCKER_TAG: ${{ env.DOCKER_REGISTRY_SERVER }}/${{ env.DOCKER_REGISTRY_STORAGE }}/${{ github.event.repository.name }}:${{ github.sha }
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -24,25 +27,22 @@ jobs:
 
     - name: Build with Maven
       run: |
-        mvn -B package --file pom.xml
-
-    - name: Docker push
-      uses: azure/docker-login@v1
+        mvn clean package -DskipTests
+    - name: Login to Docker registry
+      uses: docker/login-action@v1
       with:
-        login-server: ${{ env.DOCKER_REGISTRY_SERVER }}
+        registry: ${{ env.DOCKER_REGISTRY_SERVER }}
         username: ${{ secrets.REGISTRY_USERNAME }}
         password: ${{ secrets.REGISTRY_PASSWORD }}
-    - run: |
-        docker build -t ${{ env.DOCKER_REGISTRY_SERVER }}/${{ env.DOCKER_REGISTRY_STORAGE }}/${{ github.event.repository.name }}:${{ github.sha }} -t ${{ env.DOCKER_REGISTRY_SERVER }}/${{ vars.DOCKER_REGISTRY_STORAGE }}/${{ github.event.repository.name }} .
-        docker push ${{ env.DOCKER_REGISTRY_SERVER }}/${{ env.DOCKER_REGISTRY_STORAGE }}/${{ github.event.repository.name }}:${{ github.sha }}
-        docker push ${{ env.DOCKER_REGISTRY_SERVER }}/${{ env.DOCKER_REGISTRY_STORAGE }}/${{ github.event.repository.name }}
-    # 让K8s应用deployment
+    - name: Tag and Push Docker image
+      run: |
+        docker build -t $PROJECT_DOCKER_TAG .
+        docker push $PROJECT_DOCKER_TAG
     - run: |
         sed -i 's/{TAG}/${{ github.sha }}/g' deployment.yaml
-    - name: deploy to cluster
-      uses: steebchen/kubectl@master
-      env:
-        KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA }}
-        KUBECTL_VERSION: "v1.23.6+k3s1"
+    - name: Deploy to Kubernetes
+      uses: appleboy/kubectl-action@master
       with:
         args: apply -f deployment.yaml
+      env:
+        KUBECONFIG: ${{ secrets.KUBE_CONFIG_DATA }}
