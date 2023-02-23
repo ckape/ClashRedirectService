@@ -29,13 +29,13 @@ jobs:
     - name: Docker push
       uses: azure/docker-login@v1
       with:
-        login-server: ${{ vars.DOCKER_REGISTRY_SERVER }}
+        login-server: ${{ env.DOCKER_REGISTRY_SERVER }}
         username: ${{ secrets.REGISTRY_USERNAME }}
         password: ${{ secrets.REGISTRY_PASSWORD }}
     - run: |
-        docker build -t ${{ vars.DOCKER_REGISTRY_SERVER }}/${{ vars.DOCKER_REGISTRY_STORAGE }}/${{ github.event.repository.name }}:${{ github.sha }} -t ${{ vars.DOCKER_REGISTRY_SERVER }}/${{ vars.DOCKER_REGISTRY_STORAGE }}/${{ github.event.repository.name }} .
-        docker push ${{ vars.DOCKER_REGISTRY_SERVER }}/${{ vars.DOCKER_REGISTRY_STORAGE }}/${{ github.event.repository.name }}:${{ github.sha }}
-        docker push ${{ vars.DOCKER_REGISTRY_SERVER }}/${{ vars.DOCKER_REGISTRY_STORAGE }}/${{ github.event.repository.name }}
+        docker build -t ${{ env.DOCKER_REGISTRY_SERVER }}/${{ env.DOCKER_REGISTRY_STORAGE }}/${{ github.event.repository.name }}:${{ github.sha }} -t ${{ env.DOCKER_REGISTRY_SERVER }}/${{ vars.DOCKER_REGISTRY_STORAGE }}/${{ github.event.repository.name }} .
+        docker push ${{ env.DOCKER_REGISTRY_SERVER }}/${{ env.DOCKER_REGISTRY_STORAGE }}/${{ github.event.repository.name }}:${{ github.sha }}
+        docker push ${{ env.DOCKER_REGISTRY_SERVER }}/${{ env.DOCKER_REGISTRY_STORAGE }}/${{ github.event.repository.name }}
     # 让K8s应用deployment
     - run: |
         sed -i 's/{TAG}/${{ github.sha }}/g' deployment.yaml
